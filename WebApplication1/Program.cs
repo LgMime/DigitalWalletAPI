@@ -39,7 +39,9 @@ app.MapPost("/users", (User userRequest) =>
 
 // --- 4. Запускаємо додаток ---
 app.Run();
-
+//1
+//2
+//3
 
 // Допоміжний клас, який потрібен для POST /users
 public class User
