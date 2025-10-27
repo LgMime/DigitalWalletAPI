@@ -7,10 +7,9 @@ on:
 
 env:
   DOTNET_VERSION: '8.0.x'
-  # ВИПРАВЛЕНО: Змінюємо шляхи, щоб вони відповідали типовій структурі репозиторію
-  # Або "WebApplication1/WebApplication1.csproj" якщо Solution знаходиться в корені
-  API_PROJECT_PATH: 'WebApplication1/WebApplication1.csproj'
-  TEST_PROJECT_PATH: 'WebApplication1.Tests/WebApplication1.Tests.csproj'
+  # ВИДАЛЕНІ змінні шляхів до окремих проєктів. 
+  # Використовуємо .sln файл.
+  SOLUTION_PATH: 'WebApplication1.sln' # Припускаємо, що .sln файл називається так.
 
 jobs:
   # --- Крок 2: Запуск Unit-тестів ---
@@ -24,12 +23,13 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
     - name: Restore
-      # Викликаємо restore для всього рішення, щоб гарантувати, що всі залежності знайдено
+      # Відновлюємо залежності для всього Solution
       run: dotnet restore
       
     - name: Run tests
-      # Запускаємо з коректним шляхом до .csproj
-      run: dotnet test ${{ env.TEST_PROJECT_PATH }} -c Release
+      # Запускаємо тести, вказуючи шлях до SOLUTION.
+      # Це змушує dotnet шукати всі тестові проєкти всередині solution.
+      run: dotnet test ${{ env.SOLUTION_PATH }} -c Release
 
   # --- Збірка проєкту ---
   build:
@@ -46,8 +46,8 @@ jobs:
       run: dotnet restore
       
     - name: Publish
-      # Шлях береться з env.API_PROJECT_PATH
-      run: dotnet publish ${{ env.API_PROJECT_PATH }} -c Release -o ./dist
+      # ВИПРАВЛЕНО: Використовуємо Solution для публікації, але вказуємо, який саме проєкт публікувати
+      run: dotnet publish WebApplication1/WebApplication1.csproj -c Release -o ./dist
       
     - name: Upload artifact
       uses: actions/upload-artifact@v4
