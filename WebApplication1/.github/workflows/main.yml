@@ -7,8 +7,15 @@ on:
 
 env:
   DOTNET_VERSION: '8.0.x'
+<<<<<<< HEAD
   API_PROJECT_PATH: 'WebApplication1/WebApplication1.csproj'
   TEST_PROJECT_PATH: 'WebApplication1.Tests/WebApplication1.Tests.csproj'
+=======
+ 
+  API_PROJECT_PATH: 'C:\Users\Mime\source\repos\WebApplication1\WebApplication1\WebApplication1.csproj'
+
+  TEST_PROJECT_PATH: 'C:\Users\Mime\source\repos\WebApplication1\WebApplication1.Test\WebApplication1.Tests.csproj'
+>>>>>>> 3231780f9030a73906f2bcf5e1d8a8d8632364de
 
 jobs:
   test:
@@ -24,7 +31,11 @@ jobs:
       run: dotnet restore
       
     - name: Run tests
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 3231780f9030a73906f2bcf5e1d8a8d8632364de
       run: dotnet test ${{ env.TEST_PROJECT_PATH }} --no-restore
 
   build:
@@ -41,6 +52,10 @@ jobs:
       run: dotnet restore
       
     - name: Publish
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3231780f9030a73906f2bcf5e1d8a8d8632364de
       run: dotnet publish ${{ env.API_PROJECT_PATH }} -c Release -o ./dist
       
     - name: Upload artifact
@@ -73,6 +88,7 @@ jobs:
       run: npm install -g newman
 
     - name: Start API in Background
+<<<<<<< HEAD
       run: dotnet ./dist/WebApplication1.dll &
       
     - name: Wait for API
@@ -80,3 +96,14 @@ jobs:
 
     - name: Run Postman Tests
       run: newman run ./docs/api/postman_collection.json
+=======
+      # Назва .dll = назва твого проєкту
+      run: dotnet ./dist/WebApplication1.dll &
+      
+    - name: Wait for API
+      run: sleep 15 # Даємо API час на запуск
+
+    - name: Run Postman Tests
+      # Переконайся, що цей шлях правильний
+      run: newman run ./docs/api/postman_collection.json
+>>>>>>> 3231780f9030a73906f2bcf5e1d8a8d8632364de
