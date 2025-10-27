@@ -7,7 +7,8 @@ on:
 
 env:
   DOTNET_VERSION: '8.0.x'
-  # ВИПРАВЛЕНО: Використовуємо відносні шляхи
+  # ВИПРАВЛЕНО: Змінюємо шляхи, щоб вони відповідали типовій структурі репозиторію
+  # Або "WebApplication1/WebApplication1.csproj" якщо Solution знаходиться в корені
   API_PROJECT_PATH: 'WebApplication1/WebApplication1.csproj'
   TEST_PROJECT_PATH: 'WebApplication1.Tests/WebApplication1.Tests.csproj'
 
@@ -23,11 +24,11 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
     - name: Restore
+      # Викликаємо restore для всього рішення, щоб гарантувати, що всі залежності знайдено
       run: dotnet restore
       
     - name: Run tests
-      # ВИПРАВЛЕНО: Прибираємо прапорець --no-restore, оскільки він викликає помилки. 
-      # Запускаємо з конфігурацією Release.
+      # Запускаємо з коректним шляхом до .csproj
       run: dotnet test ${{ env.TEST_PROJECT_PATH }} -c Release
 
   # --- Збірка проєкту ---
