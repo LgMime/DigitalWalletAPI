@@ -1,11 +1,9 @@
-﻿// Це файл: WebApplication1.Tests/UnitTest1.cs
-
-using Xunit;
-using WebApplication1; // <--- ВАЖЛИВО: Додаємо using, щоб "бачити" MathService
+﻿using Xunit;
+using WebApplication1; 
 
 namespace WebApplication1.Tests
 {
-    public class MathServiceTests // Я перейменував клас
+    public class MathServiceTests 
     {
         [Fact] // Атрибут, що позначає цей метод як тест
         public void Sum_ReturnsCorrectValue()
