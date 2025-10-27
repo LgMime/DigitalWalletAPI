@@ -1,1 +1,1 @@
-[![CI/CD Pipeline Status](https://github.com/LgMime/WebAplication1/actions/workflows/main.yml/badge.svg)]
+[![CI/CD Pipeline Status](https://github.com/LgMime/WebApplication1/.github/workflows/main.yml/badge.svg)]
