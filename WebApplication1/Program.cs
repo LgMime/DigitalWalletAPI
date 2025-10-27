@@ -9,16 +9,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Додаємо наш MathService, щоб API могло ним користуватись
 builder.Services.AddSingleton<MathService>();
 
-// Додаємо сервіси для Swagger (це виконає Завдання 3, Варіант 1)
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
 
-// --- 2. Налаштовуємо пайплайн ---
 
-// Кажемо додатку використовувати Swagger
 app.UseSwagger();
 app.UseSwaggerUI();
 
