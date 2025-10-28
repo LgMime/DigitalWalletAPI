@@ -66,12 +66,12 @@ jobs:
       with:
         name: app-build
         path: ./dist
-        
+
     - uses: actions/checkout@v4 
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
-        
+
     - uses: actions/setup-node@v3
       with:
         node-version: '18'
@@ -80,6 +80,8 @@ jobs:
       run: npm install -g newman
 
     - name: Start API in Background
+      env:
+        ASPNETCORE_URLS: http://localhost:5105
       run: dotnet ./dist/WebApplication1.dll &
       
     - name: Wait for API
