@@ -9,6 +9,17 @@ on:
 jobs:
   build-test-api:
     runs-on: ubuntu-latest
+    
+    env:
+      # ВИПРАВЛЕНО ШЛЯХ: SOLUTION_FILE знаходиться в корені репозиторію
+      SOLUTION_FILE: 'WebApplication1.sln' 
+      # Шлях до проекту API (використовується для запуску DLL)
+      API_PROJECT_PATH: 'WebApplication1/WebApplication1.csproj'
+      # Шлях до папки з документацією Postman
+      POSTMAN_COLLECTION_PATH: 'WebApplication1/docs/api/postman_collection.json' # Відновлено шлях з WebApplication1/
+      # Порт, на якому буде працювати API
+      API_PORT: 5105
+      API_URL: 'http://localhost:5105'
 
     steps:
       - name: Checkout repository
@@ -19,31 +30,38 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
+      # ВИПРАВЛЕННЯ MSB1009: Шлях до Solution тепер правильний
       - name: Restore dependencies
-        run: dotnet restore WebApplication1/WebApplication1.sln
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
 
+      # ВИПРАВЛЕННЯ MSB1009: Шлях до Solution тепер правильний
       - name: Build project
-        run: dotnet build WebApplication1/WebApplication1.sln --configuration Debug --no-restore
+        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Debug --no-restore
 
+      # Встановлення Newman (відновлено без wait-on)
+      - name: Install Newman
+        run: npm install -g newman
+
+      # ВІДНОВЛЕНО ШЛЯХ DLL та початковий sleep 15
       - name: Run API in background
         run: |
+          # ВІДНОВЛЕНО: Шлях до DLL з оригінальної версії (якщо він працював раніше)
+          # Зверніть увагу: ми використовуємо початковий шлях і nohup, який ви застосовували.
           nohup dotnet WebApplication1/WebApplication1/bin/Debug/net9.0/WebApplication1.dll \
-            --urls "http://0.0.0.0:5105" > api.log 2>&1 &
-          sleep 15
+            --urls "http://0.0.0.0:${{ env.API_PORT }}" > api.log 2>&1 &
+          sleep 15 # ВІДНОВЛЕНО: Початковий sleep 15
 
       - name: Show API Logs
         run: cat api.log
 
+      # ВІДНОВЛЕНО: Початковий wait-on (npx wait-on)
       - name: Wait for API to be ready
-        run: npx wait-on http://localhost:5105 --timeout 120000
-
-      - name: Install Newman
-        run: npm install -g newman
+        run: npx wait-on http://localhost:${{ env.API_PORT }} --timeout 120000
 
       - name: Run Postman Tests and Save Report
         run: |
           mkdir -p reports
-          newman run WebApplication1/docs/api/postman_collection.json \
+          newman run ${{ env.POSTMAN_COLLECTION_PATH }} \
             --delay-request 1000 \
             --reporters cli,html \
             --reporter-html-export reports/test-report.html
