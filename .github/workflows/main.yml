@@ -8,7 +8,6 @@ on:
 env:
   DOTNET_VERSION: '8.0.x'
   SOLUTION_PATH: 'WebApplication1.sln' 
-  # URL, який буде прослуховувати API для Postman-тестів
   API_URL: 'http://localhost:5105'
 
 jobs:
@@ -22,9 +21,9 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
     - name: Restore dependencies
-      run: dotnet restore 
-
-    - name: Run tests  
+      run: dotnet restore
+      
+    - name: Run tests
       run: dotnet test ${{ env.SOLUTION_PATH }} -c Release
 
   build:
@@ -70,15 +69,21 @@ jobs:
         node-version: '18'
 
     - name: Install Newman and wait-on
-
       run: npm install -g newman wait-on
 
     - name: Start API in Background
       env:
         ASPNETCORE_URLS: ${{ env.API_URL }}
-      run: dotnet ./dist/WebApplication1.dll &
+      run: dotnet ./dist/WebApplication1.dll > /tmp/api.log 2>&1 & 
+
     - name: Wait for API to be ready (wait-on)
-      run: wait-on ${{ env.API_URL }}/users -t 60000 
+      run: wait-on ${{ env.API_URL }}/ -t 120000 
 
     - name: Run Postman Tests
       run: newman run ./docs/api/postman_collection.json --env-var "baseURL=${{ env.API_URL }}"
+
+    - name: Output API Logs on Failure
+      if: failure()
+      run: |
+        echo "--- API Startup Logs ---"
+        cat /tmp/api.log || echo "API log file not found."
