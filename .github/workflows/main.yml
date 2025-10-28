@@ -49,12 +49,14 @@ jobs:
         run: ls Postman/
 
       # Запуск тестів Postman
+      # Запуск тестів Postman: Використовуємо --global-var
       - name: Run Postman Collection Tests
-        # Припускаємо, що колекція та середовище знаходяться в папці Postman/
         run: |
-          newman run "Postman/api_tests.json" -e "Postman/local_env.json" \
+          newman run "Postman/api_tests.json" \
+            --global-var "baseURL=http://localhost:5105" \
             --reporters cli,json \
-            --reporter-json-export "newman-report.json"
+            --reporter-json-export "newman-report.json" \
+            --insecure # Додаємо прапор для надійностіn"
         env:
           BASE_URL: http://localhost:5105 # Якщо ваше середовище Postman використовує {{baseURL}}
         # 'continue-on-error: true' можна використовувати, якщо потрібно, щоб пайплайн не падав відразу,
