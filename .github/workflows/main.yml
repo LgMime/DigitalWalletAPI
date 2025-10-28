@@ -7,12 +7,11 @@ on:
 
 env:
   DOTNET_VERSION: '8.0.x'
-  # ВИДАЛЕНІ змінні шляхів до окремих проєктів. 
-  # Використовуємо .sln файл.
-  SOLUTION_PATH: 'WebApplication1.sln' # Припускаємо, що .sln файл називається так.
+  SOLUTION_PATH: 'WebApplication1.sln' 
+  # URL, який буде прослуховувати API для Postman-тестів
+  API_URL: 'http://localhost:5105'
 
 jobs:
-  # --- Крок 2: Запуск Unit-тестів ---
   test:
     name: Run Unit Tests
     runs-on: ubuntu-latest
@@ -22,16 +21,12 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
-    - name: Restore
-      # Відновлюємо залежності для всього Solution
-      run: dotnet restore
-      
-    - name: Run tests
-      # Запускаємо тести, вказуючи шлях до SOLUTION.
-      # Це змушує dotnet шукати всі тестові проєкти всередині solution.
+    - name: Restore dependencies
+      run: dotnet restore 
+
+    - name: Run tests  
       run: dotnet test ${{ env.SOLUTION_PATH }} -c Release
 
-  # --- Збірка проєкту ---
   build:
     name: Build & Publish
     runs-on: ubuntu-latest
@@ -42,11 +37,10 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
-    - name: Restore
+    - name: Restore dependencies
       run: dotnet restore
       
     - name: Publish
-      # ВИПРАВЛЕНО: Використовуємо Solution для публікації, але вказуємо, який саме проєкт публікувати
       run: dotnet publish WebApplication1/WebApplication1.csproj -c Release -o ./dist
       
     - name: Upload artifact
@@ -55,7 +49,6 @@ jobs:
         name: app-build
         path: ./dist
 
-  # --- Крок 3: Інтеграція Postman ---
   api-test:
     name: Run Postman (API) Tests
     runs-on: ubuntu-latest
@@ -76,16 +69,16 @@ jobs:
       with:
         node-version: '18'
 
-    - name: Install Newman
-      run: npm install -g newman
+    - name: Install Newman and wait-on
+
+      run: npm install -g newman wait-on
 
     - name: Start API in Background
       env:
-        ASPNETCORE_URLS: http://localhost:5105
+        ASPNETCORE_URLS: ${{ env.API_URL }}
       run: dotnet ./dist/WebApplication1.dll &
-      
-    - name: Wait for API
-      run: sleep 15 
+    - name: Wait for API to be ready (wait-on)
+      run: wait-on ${{ env.API_URL }}/users -t 60000 
 
     - name: Run Postman Tests
-      run: newman run ./docs/api/postman_collection.json
+      run: newman run ./docs/api/postman_collection.json --env-var "baseURL=${{ env.API_URL }}"
