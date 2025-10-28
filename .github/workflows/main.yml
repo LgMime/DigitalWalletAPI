@@ -1,73 +1,65 @@
-name: Run .NET API Tests
+name: CI/CD Pipeline - API and Postman Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "main", "master" ]
 
 jobs:
-  build-test-api:
+  build-and-test:
     runs-on: ubuntu-latest
     
-    env:
-      # ВИПРАВЛЕНО ШЛЯХ: SOLUTION_FILE знаходиться в корені репозиторію
-      SOLUTION_FILE: 'WebApplication1.sln' 
-      # Шлях до проекту API (використовується для запуску DLL)
-      API_PROJECT_PATH: 'WebApplication1/WebApplication1.csproj'
-      # Шлях до папки з документацією Postman
-      POSTMAN_COLLECTION_PATH: 'WebApplication1/docs/api/postman_collection.json' # Відновлено шлях з WebApplication1/
-      # Порт, на якому буде працювати API
-      API_PORT: 5105
-      API_URL: 'http://localhost:5105'
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup .NET 9.0
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: '8.0.x' # Або ваша версія .NET
 
-      # ВИПРАВЛЕННЯ MSB1009: Шлях до Solution тепер правильний
       - name: Restore dependencies
-        run: dotnet restore ${{ env.SOLUTION_FILE }}
+        run: dotnet restore
 
-      # ВИПРАВЛЕННЯ MSB1009: Шлях до Solution тепер правильний
-      - name: Build project
-        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Debug --no-restore
+      - name: Build Solution
+        run: dotnet build --no-restore
 
-      # Встановлення Newman (відновлено без wait-on)
+      # Опублікувати додаток для запуску
+      - name: Publish Web Application
+        run: dotnet publish WebApplication1/WebApplication1.csproj -c Release -o ./publish
+
+      # Запустити додаток у фоновому режимі (Важливо: для CI)
+      - name: Run Web Application in Background
+        # Використовуємо 'nohup' та '&' для запуску у фоні
+        run: |
+          echo "Starting application..."
+          # Запускаємо додаток на localhost:5105. Порт 5105 повинен бути вказаний у вашому коді (app.Run()) або в конфігурації.
+          nohup dotnet ./publish/WebApplication1.dll --urls "http://localhost:5105" &
+          echo "Waiting 5 seconds for server to start..."
+          sleep 5 # Чекаємо, поки сервер повністю завантажиться
+          echo "Server should be running now."
+
+      # Встановлення Newman (консольний раннер Postman)
       - name: Install Newman
         run: npm install -g newman
 
-      # ВІДНОВЛЕНО ШЛЯХ DLL та початковий sleep 15
-      - name: Run API in background
+      # Встановлення допоміжного інструменту для перевірки наявності файлів (для Newman)
+      - name: Check for Postman files
+        run: ls Postman/
+
+      # Запуск тестів Postman
+      - name: Run Postman Collection Tests
+        # Припускаємо, що колекція та середовище знаходяться в папці Postman/
         run: |
-          # ВІДНОВЛЕНО: Шлях до DLL з оригінальної версії (якщо він працював раніше)
-          # Зверніть увагу: ми використовуємо початковий шлях і nohup, який ви застосовували.
-          nohup dotnet WebApplication1/WebApplication1/bin/Debug/net9.0/WebApplication1.dll \
-            --urls "http://0.0.0.0:${{ env.API_PORT }}" > api.log 2>&1 &
-          sleep 15 # ВІДНОВЛЕНО: Початковий sleep 15
-
-      - name: Show API Logs
-        run: cat api.log
-
-      # ВІДНОВЛЕНО: Початковий wait-on (npx wait-on)
-      - name: Wait for API to be ready
-        run: npx wait-on http://localhost:${{ env.API_PORT }} --timeout 120000
-
-      - name: Run Postman Tests and Save Report
-        run: |
-          mkdir -p reports
-          newman run ${{ env.POSTMAN_COLLECTION_PATH }} \
-            --delay-request 1000 \
-            --reporters cli,html \
-            --reporter-html-export reports/test-report.html
-
-      - name: Upload Newman Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: postman-report
-          path: reports/test-report.html
+          newman run "Postman/api_tests.json" -e "Postman/local_env.json" \
+            --reporters cli,json \
+            --reporter-json-export "newman-report.json"
+        env:
+          BASE_URL: http://localhost:5105 # Якщо ваше середовище Postman використовує {{baseURL}}
+        # 'continue-on-error: true' можна використовувати, якщо потрібно, щоб пайплайн не падав відразу,
+        # але для тестів це зазвичай не потрібно, вони повинні зупиняти пайплайн при помилці.
+        
+      # Додатково: Запуск Unit-тестів
+      - name: Run Unit Tests (XUnit)
+        run: dotnet test
