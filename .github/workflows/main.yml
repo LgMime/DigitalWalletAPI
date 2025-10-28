@@ -1,89 +1,41 @@
-name: CI/CD Pipeline for WebApplication1
+name: Run .NET API Tests
 
 on:
   push:
-    branches: [ "**" ]
+    branches: [ main ]
   pull_request:
-
-env:
-  DOTNET_VERSION: '8.0.x'
-  SOLUTION_PATH: 'WebApplication1.sln' 
-  API_URL: 'http://localhost:5105'
+    branches: [ main ]
 
 jobs:
-  test:
-    name: Run Unit Tests
+  build-test-api:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Run tests
-      run: dotnet test ${{ env.SOLUTION_PATH }} -c Release
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  build:
-    name: Build & Publish
-    runs-on: ubuntu-latest
-    needs: [test] 
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Publish
-      run: dotnet publish WebApplication1/WebApplication1.csproj -c Release -o ./dist
-      
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-build
-        path: ./dist
+      - name: Setup .NET 9.0
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
 
-  api-test:
-    name: Run Postman (API) Tests
-    runs-on: ubuntu-latest
-    needs: [build] 
-    steps:
-    - name: Download build artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: app-build
-        path: ./dist
+      - name: Restore dependencies
+        run: dotnet restore WebApplication1/WebApplication1.sln
 
-    - uses: actions/checkout@v4 
-    - uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Build project
+        run: dotnet build WebApplication1/WebApplication1.sln --configuration Debug --no-restore
 
-    - uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      - name: Run API in background
+        run: |
+          nohup dotnet WebApplication1/WebApplication1/bin/Debug/net9.0/WebApplication1.dll --urls "http://localhost:5105" &
+          sleep 10
 
-    - name: Install Newman and wait-on
-      run: npm install -g newman wait-on
+      - name: Wait for API to be ready
+        run: npx wait-on http://localhost:5105 --timeout 60000
 
-    - name: Start API in Background
-      env:
-        ASPNETCORE_URLS: ${{ env.API_URL }}
-      run: dotnet ./dist/WebApplication1.dll > /tmp/api.log 2>&1 & 
+      - name: Install Newman
+        run: npm install -g newman
 
-    - name: Wait for API to be ready (wait-on)
-      run: wait-on ${{ env.API_URL }}/ -t 120000 
-
-    - name: Run Postman Tests
-      run: newman run ./docs/api/postman_collection.json --env-var "baseURL=${{ env.API_URL }}"
-
-    - name: Output API Logs on Failure
-      if: failure()
-      run: |
-        echo "--- API Startup Logs ---"
-        cat /tmp/api.log || echo "API log file not found."
+      - name: Run Postman Tests
+        run: |
+          newman run WebApplication1/docs/api/postman_collection.json --delay-request 1000
