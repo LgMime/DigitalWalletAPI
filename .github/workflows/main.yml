@@ -25,17 +25,34 @@ jobs:
       - name: Build project
         run: dotnet build WebApplication1/WebApplication1.sln --configuration Debug --no-restore
 
+    
       - name: Run API in background
         run: |
-          nohup dotnet WebApplication1/WebApplication1/bin/Debug/net9.0/WebApplication1.dll --urls "http://localhost:5105" &
-          sleep 10
+          nohup dotnet WebApplication1/WebApplication1/bin/Debug/net9.0/WebApplication1.dll \
+            --urls "http://0.0.0.0:5105" > api.log 2>&1 &
+          sleep 15
+
+   
+      - name: Show API Logs
+        run: cat api.log
 
       - name: Wait for API to be ready
-        run: npx wait-on http://localhost:5105 --timeout 60000
+        run: npx wait-on http://localhost:5105 --timeout 120000
 
+      
       - name: Install Newman
         run: npm install -g newman
 
-      - name: Run Postman Tests
+      - name: Run Postman Tests and Save Report
         run: |
-          newman run WebApplication1/docs/api/postman_collection.json --delay-request 1000
+          mkdir -p reports
+          newman run WebApplication1/docs/api/postman_collection.json \
+            --delay-request 1000 \
+            --reporters cli,html \
+            --reporter-html-export reports/test-report.html
+
+      - name: Upload Newman Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: postman-report
+          path: reports/test-report.html
