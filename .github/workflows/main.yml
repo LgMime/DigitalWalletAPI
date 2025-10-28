@@ -17,7 +17,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x' # Або ваша версія .NET
+          dotnet-version: '8.0.x'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -31,36 +31,25 @@ jobs:
 
       # Запустити додаток у фоновому режимі (Важливо: для CI)
       - name: Run Web Application in Background
-        # Використовуємо 'nohup' та '&' для запуску у фоні
         run: |
           echo "Starting application..."
-          # Запускаємо додаток на localhost:5105. Порт 5105 повинен бути вказаний у вашому коді (app.Run()) або в конфігурації.
+          # Запускаємо додаток на localhost:5105
           nohup dotnet ./publish/WebApplication1.dll --urls "http://localhost:5105" &
           echo "Waiting 5 seconds for server to start..."
-          sleep 5 # Чекаємо, поки сервер повністю завантажиться
+          sleep 5
           echo "Server should be running now."
 
       # Встановлення Newman (консольний раннер Postman)
       - name: Install Newman
         run: npm install -g newman
 
-      # Встановлення допоміжного інструменту для перевірки наявності файлів (для Newman)
-      - name: Check for Postman files
-        run: ls Postman/
-
-      # Запуск тестів Postman
-      # Запуск тестів Postman: Використовуємо --global-var
+      # Запуск тестів Postman: Тепер без --global-var, оскільки URL-адреса захардкоджено в колекції
       - name: Run Postman Collection Tests
         run: |
           newman run "Postman/api_tests.json" \
-            --global-var "baseURL=http://localhost:5105" \
             --reporters cli,json \
             --reporter-json-export "newman-report.json" \
-            --insecure # Додаємо прапор для надійностіn"
-        env:
-          BASE_URL: http://localhost:5105 # Якщо ваше середовище Postman використовує {{baseURL}}
-        # 'continue-on-error: true' можна використовувати, якщо потрібно, щоб пайплайн не падав відразу,
-        # але для тестів це зазвичай не потрібно, вони повинні зупиняти пайплайн при помилці.
+            --insecure # Додаємо прапор для надійності
         
       # Додатково: Запуск Unit-тестів
       - name: Run Unit Tests (XUnit)

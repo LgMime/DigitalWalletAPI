@@ -26,10 +26,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{baseURL}}/users",
+					"raw": "http://localhost:5105/users",
+					"protocol": "http",
 					"host": [
-						"{{baseURL}}"
+						"localhost"
 					],
+					"port": "5105",
 					"path": [
 						"users"
 					]
@@ -52,10 +54,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{baseURL}}/users",
+					"raw": "http://localhost:5105/users",
+					"protocol": "http",
 					"host": [
-						"{{baseURL}}"
+						"localhost"
 					],
+					"port": "5105",
 					"path": [
 						"users"
 					]
