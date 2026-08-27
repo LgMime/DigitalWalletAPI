@@ -25,32 +25,26 @@ jobs:
       - name: Build Solution
         run: dotnet build --no-restore
 
-      # Опублікувати додаток для запуску
       - name: Publish Web Application
-        run: dotnet publish WebApplication1/WebApplication1.csproj -c Release -o ./publish
+        run: dotnet publish DigitalWalletAPI/DigitalWalletAPI.csproj -c Release -o ./publish
 
-      # Запустити додаток у фоновому режимі (Важливо: для CI)
       - name: Run Web Application in Background
         run: |
           echo "Starting application..."
-          # Запускаємо додаток на localhost:5105
-          nohup dotnet ./publish/WebApplication1.dll --urls "http://localhost:5105" &
+          nohup dotnet ./publish/DigitalWalletAPI.dll --urls "http://localhost:5105" > app.log 2>&1 &
           echo "Waiting 5 seconds for server to start..."
           sleep 5
           echo "Server should be running now."
 
-      # Встановлення Newman (консольний раннер Postman)
       - name: Install Newman
         run: npm install -g newman
 
-      # Запуск тестів Postman: Тепер без --global-var, оскільки URL-адреса захардкоджено в колекції
       - name: Run Postman Collection Tests
         run: |
           newman run "Postman/api_tests.json" \
             --reporters cli,json \
             --reporter-json-export "newman-report.json" \
-            --insecure # Додаємо прапор для надійності
-        
-      # Додатково: Запуск Unit-тестів
+            --insecure
+
       - name: Run Unit Tests (XUnit)
-        run: dotnet test
+        run: dotnet test --no-build
