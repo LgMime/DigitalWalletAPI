@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DigitalWalletAPI\DigitalWallet-API.csproj" />
+    <ProjectReference Include="..\WebApplication1\DigitalWallet-API.csproj" />
   </ItemGroup>
 
   <ItemGroup>
