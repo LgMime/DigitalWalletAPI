@@ -1,7 +1,7 @@
 ﻿using Xunit;
-using WebApplication1; 
+using DigitalWalletAPI; 
 
-namespace WebApplication1.Tests
+namespace DigitalWalletAPI.Tests
 {
     public class MathServiceTests 
     {

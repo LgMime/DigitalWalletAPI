@@ -1,5 +1,5 @@
 
-using WebApplication1; 
+using DigitalWalletAPI; 
 
 var builder = WebApplication.CreateBuilder(args);
 
