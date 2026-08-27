@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.9.12120.119
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalWallet-API", "DigitalWalletAPI\DigitalWallet-API.csproj", "{EDB317DA-6FEA-F523-22CA-5D63A3EC31D8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalWalletAPI", "DigitalWalletAPI\DigitalWalletAPI.csproj", "{EDB317DA-6FEA-F523-22CA-5D63A3EC31D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalWallet-API.Test", "DigitalWalletAPI.Test\DigitalWallet-API.Test.csproj", "{DC31F674-4F29-C757-5F4B-E11FB3B0A748}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalWalletAPI.Test", "DigitalWalletAPI.Test\DigitalWalletAPI.Test.csproj", "{DC31F674-4F29-C757-5F4B-E11FB3B0A748}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
